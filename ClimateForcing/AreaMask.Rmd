@@ -1,0 +1,56 @@
+---
+title: "AreaMask"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-06-28'
+output: html_document
+---
+
+## FishMIP 2022: Area Mask
+
+This script creates an area mask that has the area per grid cell for the area of interest: 0 - 40N, 180 - 150W & 15 - 36N, 150W_125W [Woodworth-Jefcoats et al. 2019](https://doi.org/10.3389/fmars.2019.00383).  The grid will be based upon that of the FishMIP 2022 climate forcing.
+
+Some helpful information:  
+* $1 degree \times 60nm/deg \times 1.852 km/nm = 111.12 km/deg$
+* $cell\ area = lat\ dist \times cos(mean\ lat\ of\ cell) \times lon\ dist$
+* Area file in square kilometers
+* R calculates trigonometric functions for angles in radians, $rad = deg \times \frac{\pi}{180}$
+* Resolution of ISIMIP forcing is 0.25-deg
+
+``` {r}
+
+# Saving output as netCDF file for use in PyFerret
+library(ncdf4)
+
+# Build off grid used in ISIMIP forcing
+phydiat.nc <- nc_open('gfdl-mom6-cobalt2_obsclim_phydiat-vint_15arcmin_HIregion_monthly_1961_2010.nc')
+phydiat_var <- ncvar_get(phydiat.nc,'PHYDIAT-VINT')
+lat <- ncvar_get(phydiat.nc,'LAT361_520')
+lon <- ncvar_get(phydiat.nc, 'LON1441_1660')
+
+
+# Create an area grid
+HIregion_area = array(NA, c(length(lon), length(lat))) 
+ll <- seq(1, length(lat), 1)
+l <- 1
+for (l in ll) {
+	#cell area  =    lat dist     *   cos(mean lat of cell) * lon dist
+	HIregion_area[,l] = (0.25 * 60 * 1.852) * ( (cos(lat[l] * (pi/180))) * 0.25 * 60 * 1.852)
+	}
+
+# Set areas outside domain to NA
+SE_lat <- which(lat < 15)
+NE_lat <- which(lat > 36)
+E_lon <- which(lon > 210)
+
+HIregion_area[E_lon, SE_lat] <- NA
+HIregion_area[E_lon, NE_lat] <- NA
+
+# Write new grid file
+x <- ncdim_def("Lon", "DegreesE", lon)
+y <- ncdim_def("Lat", "DegreesN", lat)
+grid_cell_area <- ncvar_def("Area", "sq km", list(x,y), -1E+34)
+ncnew1 <- nc_create("HIregion_area.nc", grid_cell_area)
+ncvar_put(ncnew1, grid_cell_area, HIregion_area)
+nc_close(ncnew1)
+
+```

@@ -1,0 +1,43 @@
+---
+title: "Prep_Temp_therMizer"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-07-05'
+output: html_document
+---
+
+## Prep temperature forcing for input into therMizer
+
+This script uses the files output by SpeciesTemp_ts.jnl (for use with [PyFerret](https://ferret.pmel.noaa.gov/Ferret/)) to create an `ocean_temp` array that will be used by therMizer.  These are temperatures that have been vertically averaged over each species' depth range and then spatially averaged over the model domain.  For details on this, see [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).
+
+One thing to note:  These are the temperature forcings provided by ISIMIP.  They have not been modified to reflect a change from a baseline period.  
+
+```{r}
+
+# Load data, skipping the 7-line header
+bye <- read.delim("GFDL_THETA_bye_ave.dat", skip = 7, header = FALSE)
+mhi <- read.delim("GFDL_THETA_mhi_ave.dat", skip = 7, header = FALSE)
+bls <- read.delim("GFDL_THETA_bls_ave.dat", skip = 7, header = FALSE)
+skj <- read.delim("GFDL_THETA_skj_ave.dat", skip = 7, header = FALSE)
+yft <- read.delim("GFDL_THETA_yft_ave.dat", skip = 7, header = FALSE)
+alb <- read.delim("GFDL_THETA_alb_ave.dat", skip = 7, header = FALSE)
+mar <- read.delim("GFDL_THETA_mar_ave.dat", skip = 7, header = FALSE)
+who <- read.delim("GFDL_THETA_who_ave.dat", skip = 7, header = FALSE)
+lctswd <- read.delim("GFDL_THETA_lctswd_ave.dat", skip = 7, header = FALSE)
+oph <- read.delim("GFDL_THETA_oph_ave.dat", skip = 7, header = FALSE)
+
+# Match with other therMizer parameters
+sp <- c("Bigeye","Mahi","BlueShark","Skipjack","Yellowfin","Albacore","StripedMarlin","Wahoo","Swordfish","BlueMarlin","Lancetfish","Opah")
+
+# Create monthly time steps, Jan 1961 - Dec 2010
+time_steps <- seq((1961 + 1/24), (2010 + 23/24), 1/12)
+
+# Create ocean_temp array
+ocean_temp_array <- array(NA, dim = c(length(time_steps), length(sp)), dimnames = list(time = time_steps, species = sp))
+
+# Fill array
+ocean_temp_array[,] <- cbind(bye[,2], mhi[,2], bls[,2], skj[,2], yft[,2], alb[,2], mar[,2], who[,2], lctswd[,2], mar[,2], lctswd[,2], oph[,2])
+
+# Save data
+write.table(ocean_temp_array, file = "GFDL_ocean_temp_array.dat", quote = FALSE, row.names = TRUE, col.names = TRUE)
+
+```

@@ -1,0 +1,14 @@
+! The purpose of this script is to create time series of the ISIMIP plankton data for FishMIP 2022
+
+! We want total carbon in g, so we'll need to:
+! Convert from mol C to g C (*12.011)
+! Convert area from km^2 to m^2 (*10^6)
+! Sum 
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_zmicro-vint_15arcmin_HIregion_monthly_1961_2010.nc ! d=2
+
+let ZMICRO = AREA[d=1] * 'ZMICRO_VINT'[d=2] * (12.011 * 10^6)
+let ZMICRO_totC = ZMICRO[i=@SUM, j=@SUM]
+
+LIST/FORMAT=TAB/FILE=GFDL_ZMICRO_totC.dat ZMICRO_totC

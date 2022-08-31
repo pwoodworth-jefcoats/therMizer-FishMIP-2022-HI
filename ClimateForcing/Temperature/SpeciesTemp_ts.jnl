@@ -1,0 +1,38 @@
+! The purpose of this script is to create time series of the ISIMIP temperature data for FishMIP 2022 
+
+! For temperature, we'll do the species-specific depth ranges, averaged over the domain
+
+use gfdl-mom6-cobalt2_obsclim_thetao_15arcmin_HIregion_monthly_1961_2010.nc
+
+LET GFDL_THETA_lctswd = THETA[d=1, z=0:1200@ave]
+LET GFDL_THETA_bye = THETA[d=1, z=0:500@ave]
+LET GFDL_THETA_mhi = THETA[d=1, z=0:85@ave]
+LET GFDL_THETA_bls = THETA[d=1, z=0:980@ave]
+LET GFDL_THETA_skj = THETA[d=1, z=0:300@ave]
+LET GFDL_THETA_yft = THETA[d=1, z=0:250@ave]
+LET GFDL_THETA_alb = THETA[d=1, z=0:600@ave]
+LET GFDL_THETA_oph = THETA[d=1, z=50:400@ave]
+LET GFDL_THETA_who = THETA[d=1, z=0:20@ave]
+LET GFDL_THETA_mar = THETA[d=1, z=0:200@ave]
+
+LET GFDL_THETA_lctswd_ave = GFDL_THETA_lctswd[i=@AVE, j=@AVE]
+LET GFDL_THETA_bye_ave = GFDL_THETA_bye[i=@AVE, j=@AVE]
+LET GFDL_THETA_mhi_ave = GFDL_THETA_mhi[i=@AVE, j=@AVE]
+LET GFDL_THETA_bls_ave = GFDL_THETA_bls[i=@AVE, j=@AVE]
+LET GFDL_THETA_skj_ave = GFDL_THETA_skj[i=@AVE, j=@AVE]
+LET GFDL_THETA_yft_ave = GFDL_THETA_yft[i=@AVE, j=@AVE]
+LET GFDL_THETA_alb_ave = GFDL_THETA_alb[i=@AVE, j=@AVE]
+LET GFDL_THETA_oph_ave = GFDL_THETA_oph[i=@AVE, j=@AVE]
+LET GFDL_THETA_who_ave = GFDL_THETA_who[i=@AVE, j=@AVE]
+LET GFDL_THETA_mar_ave = GFDL_THETA_mar[i=@AVE, j=@AVE]
+
+LIST/FORMAT=TAB/FILE=GFDL_THETA_lctswd_ave.dat GFDL_THETA_lctswd_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_bye_ave.dat GFDL_THETA_bye_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_mhi_ave.dat GFDL_THETA_mhi_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_bls_ave.dat GFDL_THETA_bls_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_skj_ave.dat GFDL_THETA_skj_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_yft_ave.dat GFDL_THETA_yft_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_alb_ave.dat GFDL_THETA_alb_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_oph_ave.dat GFDL_THETA_oph_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_who_ave.dat GFDL_THETA_who_ave
+LIST/FORMAT=TAB/FILE=GFDL_THETA_mar_ave.dat GFDL_THETA_mar_ave
