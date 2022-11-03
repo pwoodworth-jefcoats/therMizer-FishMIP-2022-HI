@@ -1,0 +1,101 @@
+---
+title: "Prep_Fishing_therMizer"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-02'
+output: html_document
+---
+
+## FishMIP 2022: fishing effort forcing
+
+This script is used to prepare the fishing forcing using the data provided from the FishMIP coordinators (as opposed to the data provided on the ISIMIP server).
+
+``` {r}
+
+# Load data
+all_effort <- read.csv("effort_histsoc_1841_2010_regional_models.csv", header = TRUE)
+all_catch <- read.csv("calibration_catch_histsoc_1850_2004_regional_models.csv", header = TRUE)
+
+### Need to select by SAUP country code, too ###
+
+# Select only: 
+# sector modeled: Industrial
+# region of interest: Hawaiian.Longline
+# SAUP country modeled: 840 (USA)
+# gear modeled: Lines_Longlines
+# groups modeled: pelagic30-90cm, pelagic>=90cm, pelagic<30cm, shark>=90cm, shark<90cm
+# phase needed: experiment
+HIidx_e <- which(all_effort$Sector == 'Industrial' &
+                 all_effort$region == 'Hawaiian.Longline' & 
+                 all_effort$SAUP == 840 & 
+                 all_effort$Gear == 'Lines_Longlines' &
+                 (all_effort$FGroup == 'pelagic30-90cm' | 
+                    all_effort$FGroup == 'pelagic>=90cm' | 
+                    all_effort$FGroup == 'pelagic<30cm' | 
+                    all_effort$FGroup == 'shark>=90cm' | 
+                    all_effort$FGroup == 'shark<90cm') &
+                 all_effort$Phase == 'experiment')
+HI_effort <- all_effort[HIidx_e,]
+
+HIidx_c <- which(all_catch$Sector == 'industrial' &
+                   all_catch$region == 'Hawaiian.Longline' &
+                   all_catch$SAUP == 840 & 
+                   (all_catch$FGroup == 'pelagic30-90cm' | 
+                    all_catch$FGroup == 'pelagic>=90cm' | 
+                    all_catch$FGroup == 'pelagic<30cm' | 
+                    all_catch$FGroup == 'shark>=90cm' | 
+                    all_catch$FGroup == 'shark<90cm'))
+HI_catch <- all_catch[HIidx_c,]
+write.csv(HI_catch, file = "HI_catch.csv", quote = FALSE, row.names = FALSE)
+
+# Aggregate across FGroup
+# Assumption: a single longline fleet is targeting all these groups
+# Supported by: characteristics and catch of Hawaii's longline fleet
+HI_ann_NomActive <- matrix(NA, 50, 2) # 50 years, 2 columns (yr, NomActive)
+colnames(HI_ann_NomActive) <- c('Year', 'NomActive')
+
+for (yr in seq(1961,2010,1)) {
+  eff_yr <- which(HI_effort$Year == yr)
+  if (length(eff_yr) > 0) {
+    eff_yr_hold <- HI_effort[eff_yr,]
+    ann_NomActive <- sum(eff_yr_hold$NomActive, na.rm = TRUE)
+    HI_ann_NomActive[yr - 1960,1] <- yr
+    HI_ann_NomActive[yr - 1960,2] <- ann_NomActive
+  }
+}
+
+
+```
+
+Average effort across years 1995 - 2004 (start year per [Woodworth-Jefcoats et al. 2019](https://doi.org/10.3389/fmars.2019.00383) end year per protocol).  This will equate to F = 0.2.  Scale the other time points accordingly.
+
+``` {r}
+
+# Determine 1995 - 2004 average
+Baseline_idx <- which(HI_ann_NomActive[,1] >= 1995 & HI_ann_NomActive[,1] <= 2004)
+Baseline_NomActive <- HI_ann_NomActive[Baseline_idx,2]
+
+# Empty array to fill
+HI_Ann_F <- matrix(NA, 50, 2)
+colnames(HI_Ann_F) <- c('Year','Effort')
+
+HI_Ann_F[,1] <- HI_ann_NomActive[,1]
+HI_Ann_F[,2] <- (HI_ann_NomActive[,2] / Baseline_NomActive) * 0.2
+
+write.csv(HI_Ann_F, file = "HI_Annual_Fishing_Mortality.csv", quote = FALSE, row.names = FALSE)
+
+# We also need to make this file with monthly time steps
+
+HI_Monthly_F <- matrix(NA, 600, 2)
+colnames(HI_Monthly_F) <- c('time', 'Effort')
+
+time_steps <- seq((1961 + 1/24), (2010 + 23/24), 1/12)
+HI_Monthly_F[,1] <- time_steps
+for (m in seq(1, 600, 1)) {
+  y_idx <- floor(HI_Monthly_F[m,1])
+  m_Effort <- which(HI_Ann_F[,1] == y_idx)
+  HI_Monthly_F[m,2] <- HI_Ann_F[m_Effort,2]
+}
+
+write.csv(HI_Monthly_F, file = "HI_Monthly_Fishing_Mortality.csv", quote = FALSE, row.names = FALSE)
+
+```
