@@ -1,0 +1,15 @@
+! The purpose of this script is to clip out the Hawaii therMizer region from a slightly larger geographic area.
+
+! Load needed data
+use HIregion_area.nc ! d=1
+use WOA_temp.nc ! d=2
+
+! Regrid area to match more coarse WOA data
+let area_regrid = AREA[d=1, gx=WOA_TEMP[d=2]@NRST,gy=WOA_TEMP[d=2]@NRST]
+
+! Apply area mask
+let MASK = IF area_regrid GT 0 THEN 1
+let HI_WOA_TEMP = WOA_TEMP[d=2] * MASK
+
+! Save file
+list/format=cdf/file=HIregion_WOA_temp.nc HI_WOA_TEMP

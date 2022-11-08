@@ -1,0 +1,7 @@
+             VARIABLE : WOA_TEMP_0TO200[I=@AVE, J=@AVE]
+             BAD FLAG : -1.E+34       
+             LONGITUDE: 180E to 125W
+             LATITUDE : 0 to 40N
+             DEPTH (m): 0 to 200
+             TIME     : 02-JUL-2315 22:06
+19.82 

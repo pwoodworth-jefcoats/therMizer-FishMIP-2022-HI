@@ -1,0 +1,17 @@
+ssh user@levante.dkrz.de
+
+sftp user@levante.dkrz.de
+
+cd /work/bb0820/ISIMIP/ISIMIP3a/InputData/climate/ocean/obsclim/global/monthly/historical/GFDL-MOM6-COBALT2
+
+get gfdl-mom6-cobalt2_obsclim_phydiat-vint_15arcmin_global_monthly_1961_2010.nc
+get gfdl-mom6-cobalt2_obsclim_phydiaz-vint_15arcmin_global_monthly_1961_2010.nc
+get gfdl-mom6-cobalt2_obsclim_phypico-vint_15arcmin_global_monthly_1961_2010.nc
+get gfdl-mom6-cobalt2_obsclim_thetao_15arcmin_global_monthly_1961_2010.nc
+get gfdl-mom6-cobalt2_obsclim_zmeso-vint_15arcmin_global_monthly_1961_2010.nc
+get gfdl-mom6-cobalt2_obsclim_zmicro-vint_15arcmin_global_monthly_1961_2010.nc
+
+
+cd /work/bb0820/ISIMIP/ISIMIP3a/InputData/climate/ocean/ctrlclim/global/monthly/historical/GFDL-MOM6-COBALT2
+
+get gfdl-mom6-cobalt2_ctrlclim_thetao_15arcmin_global_monthly_1961_2010.nc

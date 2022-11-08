@@ -1,0 +1,19 @@
+Bigeye Mahi BlueShark Skipjack Yellowfin Albacore StripedMarlin Wahoo Swordfish BlueMarlin Lancetfish Opah
+r0to20 0 0 0 0 0 0 0 1 0 0 0 0
+r0to50 0 0 0 1 0 0 1 0 0 0 0 0
+r0to85 0 1 0 0 0 0 0 0 0 0 0 0
+r0to100 1 0 0 0 1 0 0 0 1 1 0 0
+r0to150 0 0 0 0 0 1 0 0 0 0 0 0
+r0to200 0 0 1 0 0 0 0 0 0 0 0 0
+r0to1200 0 0 0 0 0 0 0 0 0 0 1 0
+r50to150 0 0 0 0 0 0 0 0 0 0 0 1
+r50to200 0 0 0 0 0 0 1 0 0 0 0 0
+r50to300 0 0 0 1 0 0 0 0 0 0 0 0
+r100to200 0 0 0 0 0 0 0 0 1 1 0 0
+r100to250 1 0 0 0 1 0 0 0 0 0 0 0
+r100to400 0 0 0 0 0 0 0 0 0 0 0 1
+r150to600 0 0 0 0 0 1 0 0 0 0 0 0
+r200to400 0 0 0 0 0 0 0 0 1 0 0 0
+r200to980 0 0 1 0 0 0 0 0 0 0 0 0
+r250to500 1 0 0 0 0 0 0 0 0 0 0 0
+r400to1200 0 0 0 0 0 0 0 0 1 0 0 0

@@ -1,0 +1,19 @@
+! The purpose of this script is to access the WOA temperature data so that it may be used as a baseline to which changes in temperature are applied.  
+! The full area and depth range of interest will be downloaded here and subset as needed in another script. 
+! NOTE: The link to the WOA23 climate normal fields wasn't working at the time of download - 7 Nov 2022 (https://www.ncei.noaa.gov/thredds-ocean/catalog/ncei/woa/temperature/decav91C0/1.00/catalog.html)
+
+! Longitude: 180:125W
+! Latitude: 0:40N
+! Depths: sfc - 1200 m
+
+
+! Call data
+use https://www.ncei.noaa.gov/thredds-ocean/dodsC/ncei/woa/temperature/decav/1.00/woa18_decav_t00_01.nc
+
+! Access the area and depths of interest
+let WOA_temp = T_AN[x = 180:125W, y = 0:40N, z = 0:1200]
+
+! Save data
+list/format=cdf/file=WOA_temp.nc WOA_temp
+
+! WOA18 reference: Locarnini, R. A., A. V. Mishonov, O. K. Baranova, T. P. Boyer, M. M. Zweng, H. E. Garcia, J. R. Reagan, D. Seidov, K. Weathers, C. R. Paver, and I. Smolyar, 2018. World Ocean Atlas 2018, Volume 1: Temperature. A. Mishonov Technical Ed.; NOAA Atlas NESDIS 81, 52pp. 

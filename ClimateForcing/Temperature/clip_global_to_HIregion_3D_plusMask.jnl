@@ -1,0 +1,34 @@
+!The purpose of this script is to cut out the Hawaii therMizer region from the global GFDL data
+
+!Longitude: 180:125W
+!Latitude: 0:40N
+!Time - obsclim: all timesteps (Jan 1961 through Dec 2010)
+!Time - ctrlclim: spin-up timesteps (Jan 1961 through Dec 1980)
+
+SET MEMORY/SIZE=1500
+
+! Load and Save Data 
+use gfdl-mom6-cobalt2_obsclim_thetao_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_thetao_15arcmin_HIregion_NoMask_monthly_1961_2010.nc thetao[x=180:125W, y=0:40N, k = 1:35, l=1:600]
+CANCEL DATA/ALL
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_thetao_15arcmin_HIregion_NoMask_monthly_1961_2010.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let THETA = THETAO[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_thetao_15arcmin_HIregion_monthly_1961_2010.nc THETA
+cancel data/all 
+cancel var/all
+
+
+use gfdl-mom6-cobalt2_ctrlclim_thetao_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_ctrlclim_thetao_15arcmin_HIregion_NoMask_monthly_1961_1980.nc thetao[x=180:125W, y=0:40N, k = 1:35, l=1:240]
+CANCEL DATA/ALL
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_ctrlclim_thetao_15arcmin_HIregion_NoMask_monthly_1961_1980.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let THETA = THETAO[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_ctrlclim_thetao_15arcmin_HIregion_monthly_1961_1980.nc THETA
+cancel data/all 
+cancel var/all

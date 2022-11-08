@@ -1,0 +1,104 @@
+---
+title: "SetUp Realms"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-09-20'
+output: html_document
+---
+
+# Set up realms for therMizer
+
+This script creates the `vertical_migration` and `exposure` arrays that will be used when running therMizer.  The allocation of species' time to each realm is informed by the literature, mostly tagging studies.  The full list of references is in the model information sheet in the FishMIP regional modeler Google drive.
+
+``` {r}
+library(mizer)
+
+HIparams <- read.csv("HIregion_species_params.csv", header = TRUE)
+HIinter <- read.csv("HIregion_inter.csv", row.names = 1)
+HIinter <- as(HIinter,"matrix")
+params <- newMultispeciesParams(HIparams, interaction = HIinter, kappa = 1e12, min_w_pp = 1e-14) # |> steady(tol = 0.001)
+
+
+realm_names <- c("r0to20", "r0to50", "r0to85", "r0to100", "r0to150", "r0to200",  "r0to1200", "r50to150", "r50to200", "r50to300", "r100to200", "r100to250", "r100to400", "r150to600", "r200to400", "r200to980", "r250to500", "r400to1200")
+species_names <- as.character(species_params(params)$species)
+sizes <- params@w
+
+# Create the vertical migration array and fill it
+vertical_migration_array <- array(0, dim = (c(length(realm_names), length(species_names), length(sizes))), dimnames = list(realm = realm_names, sp = species_names, w = signif(sizes,3))) # realm x species x size
+
+# Indices for realms
+r1 <- which(realm_names == "r0to20")
+r2 <- which(realm_names == "r0to50") 
+r3 <- which(realm_names == "r0to85") 
+r4 <- which(realm_names == "r0to100")
+r5 <- which(realm_names == "r0to150") 
+r6 <- which(realm_names == "r0to200")  
+r7 <- which(realm_names == "r0to1200") 
+r8 <- which(realm_names == "r50to150") 
+r9 <- which(realm_names == "r50to200") 
+r10 <- which(realm_names == "r50to300") 
+r11 <- which(realm_names == "r100to200") 
+r12 <- which(realm_names == "r100to250") 
+r13 <- which(realm_names == "r100to400") 
+r14 <- which(realm_names == "r150to600") 
+r15 <- which(realm_names == "r200to400") 
+r16 <- which(realm_names == "r200to980") 
+r17 <- which(realm_names == "r250to500") 
+r18 <- which(realm_names == "r400to1200") 
+
+# Indices for species
+sp1 <- which(species_names == "Lancetfish")
+sp2 <- which(species_names == "Bigeye")
+sp3 <- which(species_names == "Mahi")
+sp4 <- which(species_names == "BlueShark")
+sp5 <- which(species_names == "Skipjack")
+sp6 <- which(species_names == "Yellowfin")
+sp7 <- which(species_names == "Albacore")
+sp8 <- which(species_names == "Opah")
+sp9 <- which(species_names == "Wahoo")
+sp10 <- which(species_names == "StripedMarlin")
+sp11 <- which(species_names == "Swordfish")
+sp12 <- which(species_names == "BlueMarlin")
+
+# Have species split their time appropriately
+vertical_migration_array[r7, sp1, ] <- 1 # Lancetfish
+vertical_migration_array[r4, sp2, ] <- 0.5 # Bigeye
+vertical_migration_array[r12, sp2, ] <- 0.1 # Bigeye
+vertical_migration_array[r17, sp2, ] <- 0.4 # Bigeye
+vertical_migration_array[r3, sp3, ] <- 1 # Mahi
+vertical_migration_array[r6, sp4, ] <- 0.7 # Blue Shark
+vertical_migration_array[r16, sp4, ] <- 0.3 # Blue Shark
+vertical_migration_array[r2, sp5, ] <- 0.8 # Skipjack
+vertical_migration_array[r10, sp5, ] <- 0.2 # Skipjack
+vertical_migration_array[r4, sp6, ] <- 0.7 # Yellowfin
+vertical_migration_array[r12, sp6, ] <- 0.3 # Yellowfin
+vertical_migration_array[r5, sp7, ] <- 0.5 # Albacore
+vertical_migration_array[r14, sp7, ] <- 0.5 # Albacore
+vertical_migration_array[r8, sp8, ] <- 0.5 # Opah
+vertical_migration_array[r13, sp8, ] <- 0.5 # Opah
+vertical_migration_array[r1, sp9, ] <- 1 # Wahoo
+vertical_migration_array[r2, sp10, ] <- 0.8 # Striped Marlin
+vertical_migration_array[r9, sp10, ] <- 0.2 # Striped Marlin
+vertical_migration_array[r4, sp11, ] <- 0.6 # Swordfish
+vertical_migration_array[r11, sp11, ] <- 0.1 # Swordfish
+vertical_migration_array[r15, sp11, ] <- 0.2 # Swordfish
+vertical_migration_array[r18, sp11, ] <- 0.1 # Swordfish
+vertical_migration_array[r4, sp12, ] <- 0.7 # Blue Marlin
+vertical_migration_array[r11, sp12, ] <- 0.3 # Blue Marlin
+
+# Construct exposure array
+exposure_array <- array(0, dim = (c(length(realm_names), length(species_names))), 
+                  dimnames = list(realm = realm_names, sp = species_names)) # realm x species
+
+for (r in seq(1,length(realm_names),1)) {
+    for (s in seq(1,length(species_names),1)) {
+        if (any(vertical_migration_array[r,s,] > 0)) {
+            exposure_array[r,s] = 1
+        }
+    }
+}
+
+# Save data for easy future use
+save(vertical_migration_array, file = "HIregion_vertical_migration_array.Rdata")
+write.table(exposure_array, file = "HIregion_exposure_array.dat", quote = FALSE, row.names = TRUE, col.names = TRUE)
+
+```
