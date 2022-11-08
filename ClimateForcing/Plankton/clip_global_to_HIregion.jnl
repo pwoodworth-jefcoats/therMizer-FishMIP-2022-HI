@@ -1,0 +1,33 @@
+!The purpose of this script is to cut out the Hawaii therMizer region from the global GFDL data
+
+!Longitude: 180:125W
+!Latitude: 0:40N
+!Time: all timesteps (Jan 1961 through Dec 2010)
+ 
+
+SET MEMORY/SIZE=500
+
+!Load and Save Data
+use gfdl-mom6-cobalt2_obsclim_phydiat-vint_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_phydiat-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc 'phydiat-vint'[x=180:125W, y=0:40N, l=1:600]
+CANCEL DATA/ALL
+
+!Load and Save Data
+use gfdl-mom6-cobalt2_obsclim_phydiaz-vint_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_phydiaz-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc 'phydiaz-vint'[x=180:125W, y=0:40N, l=1:600]
+CANCEL DATA/ALL
+
+!Load and Save Data
+use gfdl-mom6-cobalt2_obsclim_phypico-vint_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_phypico-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc 'phypico-vint'[x=180:125W, y=0:40N, l=1:600]
+CANCEL DATA/ALL
+
+!Load and Save Data
+use gfdl-mom6-cobalt2_obsclim_zmeso-vint_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_zmeso-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc 'zmeso-vint'[x=180:125W, y=0:40N, l=1:600]
+CANCEL DATA/ALL
+
+!Load and Save Data
+use gfdl-mom6-cobalt2_obsclim_zmicro-vint_15arcmin_global_monthly_1961_2010.nc
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_zmicro-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc 'zmicro-vint'[x=180:125W, y=0:40N, l=1:600]
+CANCEL DATA/ALL

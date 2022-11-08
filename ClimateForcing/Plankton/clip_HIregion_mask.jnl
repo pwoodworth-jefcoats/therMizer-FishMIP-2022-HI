@@ -1,0 +1,41 @@
+! This purpose of this script is to apply the area mask to the data that have been subset for the broader Hawaii therMizer region.
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_phydiat-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let PHYDIAT_VINT = 'PHYDIAT-VINT'[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_phydiat-vint_15arcmin_HIregion_monthly_1961_2010.nc PHYDIAT_VINT
+cancel data/all 
+cancel var/all
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_phydiaz-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let PHYDIAZ_VINT = 'PHYDIAZ-VINT'[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_phydiaz-vint_15arcmin_HIregion_monthly_1961_2010.nc PHYDIAZ_VINT
+cancel data/all 
+cancel var/all
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_phypico-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let PHYPICO_VINT = 'PHYPICO-VINT'[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_phypico-vint_15arcmin_HIregion_monthly_1961_2010.nc PHYPICO_VINT
+cancel data/all 
+cancel var/all
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_zmeso-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let ZMESO_VINT = 'ZMESO-VINT'[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_zmeso-vint_15arcmin_HIregion_monthly_1961_2010.nc ZMESO_VINT
+cancel data/all 
+cancel var/all
+
+use HIregion_area.nc ! d=1
+use gfdl-mom6-cobalt2_obsclim_zmicro-vint_15arcmin_HIregion_NoMask_monthly_1961_2010.nc ! d=2
+let MASK = IF AREA[d=1] GT 0 THEN 1
+let ZMICRO_VINT = 'ZMICRO-VINT'[d=2] * MASK
+LIST/CLOBBER/FORMAT=CDF/FILE=gfdl-mom6-cobalt2_obsclim_zmicro-vint_15arcmin_HIregion_monthly_1961_2010.nc ZMICRO_VINT
+cancel data/all 
+cancel var/all

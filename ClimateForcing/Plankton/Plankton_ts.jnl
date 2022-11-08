@@ -1,5 +1,7 @@
 ! The purpose of this script is to create time series of the ISIMIP plankton data for FishMIP 2022
 
+! Each time I ran this, I updated the variable name, cycling through all the plankton groups used.
+
 ! We want total carbon in g, so we'll need to:
 ! Convert from mol C to g C (*12.011)
 ! Convert area from km^2 to m^2 (*10^6)

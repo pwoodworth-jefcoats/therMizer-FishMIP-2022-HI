@@ -7,9 +7,9 @@ output: html_document
 
 ## Prep plankton forcing for input into therMizer
 
-This script uses the files output by Plankton_ts.jnl (for use with [PyFerret](https://ferret.pmel.noaa.gov/Ferret/)) to create background resources array that will be used by therMizer.  Plankton carbon densities were converted to total carbon and summed over the model domain.  This is similar to, but an improvement upon, [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).
+This script uses the files output by Plankton_ts.jnl (for use with [PyFerret](https://ferret.pmel.noaa.gov/Ferret/)) to create the background resource array that will be used by therMizer.  In that script, plankton carbon densities were converted to total carbon and summed over the model domain.  This is similar to, but an improvement upon, [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).  Here, this total carbon is used to create resource spectra at each time step.
 
-For reference:  
+Size class ranges, for reference (ESD = Equivalent Spherical Diameter):  
 - Phyto = 0.2 - 200 um ESD (mid-point size = 100.1 um ESD)  
 -	pico = 0.2 - 10 um ESD (mid-point size = 5.1 um ESD)  
 -	large (diatoms and diazotrophs) = 10 - 200 um ESD (mid-point size = 105 um ESD)  
@@ -25,7 +25,7 @@ Conversions used:
 
 ```{r}
 
-# Load data
+# Load total carbon data, skipping the 6-line header
 GFDL_pico <- read.table("GFDL_PHYPICO_totC.dat", skip = 6, header = FALSE)
 GFDL_diat <- read.table("GFDL_PHYDIAT_totC.dat", skip = 6, header = FALSE)
 GFDL_diaz <- read.table("GFDL_PHYDIAZ_totC.dat", skip = 6, header = FALSE)
@@ -39,6 +39,7 @@ micro_mid <- (4/3)*pi*((0.5*0.0001*101)^3)
 meso_mid <- (4/3)*pi*((0.5*0.0001*10100)^3)
 
 # Convert total carbon to gww and then get numerical abundance by dividing by size class mid point
+# This step assumes that all plankton are the midpoint size
 pico_abund <- GFDL_pico[,3]*10/pico_mid
 large_abund <- (GFDL_diat[,3] + GFDL_diaz[,3])*10/large_mid
 micro_abund <- GFDL_zmicro[,3]*10/micro_mid
@@ -54,9 +55,7 @@ plankton_x <- log10(c(pico_mid, micro_mid, large_mid, meso_mid))
 full_x <- c(-14.01977294, -13.93231443, -13.84485591, -13.75739740, -13.66993888, -13.58248037, -13.49502185, -13.40756333, -13.32010482, -13.23264630, -13.14518779, -13.05772927, -12.97027076, -12.88281224, -12.79535373, -12.70789521, -12.62043670, -12.53297818, -12.44551967, -12.35806115, -12.27060263, -12.18314412, -12.09568560, -12.00822709, -11.92076857, -11.83331006, -11.74585154, -11.65839303, -11.57093451, -11.48347600, -11.39601748, -11.30855896, -11.22110045, -11.13364193, -11.04618342, -10.95872490, -10.87126639, -10.78380787, -10.69634936, -10.60889084, -10.52143233, -10.43397381, -10.34651530, -10.25905678, -10.17159826, -10.08413975, -9.99668123,  -9.90922272, -9.82176420, -9.73430569, -9.64684717, -9.55938866, -9.47193014, -9.38447163, -9.29701311, -9.20955459, -9.12209608, -9.03463756, -8.94717905, -8.85972053, -8.77226202, -8.68480350, -8.59734499, -8.50988647, -8.42242796, -8.33496944, -8.24751093, -8.16005241, -8.07259389, -7.98513538, -7.89767686, -7.81021835, -7.72275983, -7.63530132, -7.54784280, -7.46038429, -7.37292577, -7.28546726, -7.19800874, -7.11055022, -7.02309171, -6.93563319, -6.84817468, -6.76071616, -6.67325765, -6.58579913, -6.49834062, -6.41088210, -6.32342359, -6.23596507, -6.14850656, -6.06104804, -5.97358952, -5.88613101, -5.79867249, -5.71121398, -5.62375546, -5.53629695, -5.44883843, -5.36137992, -5.27392140, -5.18646289, -5.09900437, -5.01154585, -4.92408734, -4.83662882, -4.74917031, -4.66171179, -4.57425328, -4.48679476, -4.39933625, -4.31187773, -4.22441922, -4.13696070, -4.04950219, -3.96204367, -3.87458515, -3.78712664, -3.69966812, -3.61220961, -3.52475109, -3.43729258, -3.34983406, -3.26237555, -3.17491703, -3.08745852, -3.00000000, -2.91254148, -2.82508297, -2.73762445, -2.65016594, -2.56270742, -2.47524891, -2.38779039, -2.30033188, -2.21287336, -2.12541485, -2.03795633, -1.95049781, -1.86303930, -1.77558078, -1.68812227, -1.60066375, -1.51320524, -1.42574672, -1.33828821, -1.25082969, -1.16337118, -1.07591266, -0.98845415, -0.90099563, -0.81353711, -0.72607860, -0.63862008, -0.55116157, -0.46370305, -0.37624454, -0.28878602, -0.20132751, -0.11386899, -0.02641048,  0.06104804, 0.14850656, 0.23596507, 0.32342359, 0.41088210, 0.49834062, 0.58579913, 0.67325765, 0.76071616, 0.84817468, 0.93563319, 1.02309171, 1.11055022, 1.19800874, 1.28546726, 1.37292577, 1.46038429, 1.54784280, 1.63530132, 1.72275983, 1.81021835, 1.89767686, 1.98513538, 2.07259389, 2.16005241, 2.24751093, 2.33496944, 2.42242796, 2.50988647, 2.59734499, 2.68480350, 2.77226202, 2.85972053, 2.94717905, 3.03463756, 3.12209608, 3.20955459, 3.29701311, 3.38447163, 3.47193014, 3.55938866, 3.64684717, 3.73430569, 3.82176420, 3.90922272, 3.99668123, 4.08413975, 4.17159826, 4.25905678, 4.34651530, 4.43397381, 4.52143233, 4.60889084, 4.69634936, 4.78380787, 4.87126639, 4.95872490, 5.04618342, 5.13364193, 5.22110045, 5.30855896, 5.39601748, 5.48347600, 5.57093451, 5.65839303)
 
 
-# We're going to try first using the actual slope and intercept from the linear models, without scaling, and capping the resource spectrum at 10g, as is mizer's default (full_x element 173 is closest to 10g).
 # Creating background resource for full_x, using the actual slope and intercept from the linear models.
-# Testing different scalings
 # Create array and fill it
 out_isimip <- array(numeric(), c(600,226)) # 600 time steps by 226 size classes
 isimip_slope <- array(numeric(), c(600,1)) # 600 time steps
@@ -73,6 +72,8 @@ for (t in seq(1,600,1)) {
 	# Expand to full size range
 	# out_isimip[t,] <- isimip_lm$coefficients[2] * full_x + isimip_lm$coefficients[1]
 	out_isimip[t,] <- isimip_lm$coefficients[2]*1.03 * full_x + isimip_lm$coefficients[1]*0.85
+	# The scaling for the slope and intercept were determined following the method in 
+	# Woodworth-Jefcoats et al. (2019)  More information is provided below.
 	
 	# Save slope and intercept, for diagnostics
 	isimip_intercept[t,1] <- isimip_lm$coefficients[1]
@@ -85,5 +86,25 @@ write.table(out_isimip, file = "GFDL_resource_spectra_S1.03I0.85.dat", quote = F
 write.table(isimip_slope, file = "GFDL_resource_slope_S1.03I0.85.dat", quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
 write.table(isimip_intercept, file = "GFDL_resource_intercept_S1.03I0.85.dat", quote = FALSE, sep = "\t", row.names = FALSE, col.names = FALSE)
 
- 
 ```
+
+### Notes from each scaling iteration  
+Because of differences across earth system models (ESMs), I've thus far found it necessary to scale the ESM output in order to obtain a realistic mizer model.  To do this, I run therMizer with all the species parameters and no plankton forcing.  I look at the resulting resource generated by the semi-chemostat model as a reference.  I also look at the behavior of the feeding level (FL) across species and sizes.  Then, I scale the slope and intercept iteratively, optimizing the feeding level to match that generated without plankton forcing.  I also compare modeled and observed catch, too (not shown here - see FishingForcing).  This is admittedly tedious...
+
+When multiple ESMs are used in the same simulation round or same study, the same scaling is applied to all ESMs.
+
+Slope and intercept unscaled: FL = 1 all species and sizes  
+Slope $\times$ 1.1 and intercept $\times$ 0.9: FL decreasing slightly with increasing size, still high (0.8 - 1)  
+Slope $\times$ 1.2 and intercept $\times$ 0.8: FL declines strongly with increasing size, 0.4 - 0.8 for small sizes 0 - 0.2 for large sizes.  
+Slope $\times$ 1.1 and intercept $\times$ 0.8: very similar to previous scaling (S1.2I0.2).  
+Slope $\times$ 1.2 and intercept $\times$ 0.9: similar to S1.1I0.9, but decreasing more with size  
+Slope unscaled and intercept $\times$ 0.8: FL low (0.1 sm - 0.5 lg) and increases with body size  
+Slope unscaled and intercept $\times$ 0.9: FL high (0.6 - 0.9 sm to 0.75 - 1 large) and increases with body size  
+Slope unscaled and intercept $\times$ 0.85: FL look good, albeit a bit spread across species, still increasing with increasing body size  
+Slope $\times$ 1.1 and intercept $\times$ 0.85: Closer.  FL good at larger sizes, decreasing with body size  
+Slope $\times$ 1.05 and intercept $\times$ 0.85: Even closer.  FL decreasing less with body size.  
+Slope $\times$ 1.05 and intercept $\times$ 0.9: FL high, but more consistent across body sizes  
+Slope $\times$ 1.025 and intercept $\times$ 0.85: FL good, increasing slightly with body size  
+Slope $\times$ 1.03 and intercept $\times$ 0.85: Going with this option.  FL in the same range as base run and similarly flat across body sizes.  
+
+Finally, an equally valid approach would be to save the resource spectra generated by the semi-chemostat model and to scale those spectra slopes and intercepts using the change in slope and intercept generated from the ESM at each time step (rather than scaling the ESM output).  You'd probably want to do this by comparing each time step to a baseline period, as is done with temperature.

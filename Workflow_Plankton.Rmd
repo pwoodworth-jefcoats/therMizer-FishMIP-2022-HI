@@ -1,0 +1,53 @@
+---
+title: "Workflow_Plankton"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-08'
+output: 
+  html_document:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+---
+
+__Workflow for processing ISIMIP 3a data for use with therMizer__  
+This document describes the workflow for preparing the ISIMIP 3a plankton data for use in `therMizer`.  
+
+The scripts mentioned are in ClimateForcing and ClimateForcing/Plankton.  Where possible, the data files are in
+ClimateForcing/Plankton/DataFiles.  Some of the data files are too large to include in this repository.
+
+Most of this workflow happens in [R](https://www.r-project.org/).  A few steps use [PyFerret](https://ferret.pmel.noaa.gov/Ferret/).  
+It's likely you could do the PyFerret steps in R.  I use PyFerret out of habit because it's a free language built specifically
+to handle large gridded datasets. 
+
+## Data Access
+The first step was accessing the ISIMIP data on levante.  This was done in the terminal using the code in
+`access_levante.txt`.  
+
+## Data Wrangling
+The remaining steps take the global files from levante and pare them down to what's used for the FishMIP simulations.
+
+### Clipping the geographic area of interest
+The first data wrangling step was clipping out the area of interest for the regional model.  Because this area isn't
+rectangular, I made a mask using `AreaMask.Rmd`.  It's built from the grid used in the files downloaded from levante and
+includes the area for each grid cell that's not masked.  
+
+I used the area mask (`HIregion_area.nc`) with the PyFerret scripts `clip_global_to_HIregion.jnl` to select only
+the geographic area that I needed and `clip_HIregion_mask.jnl` to apply the area mask.  For the temperature data, these two steps are done within the same script.
+
+### Spatial aggregation
+I used PyFerret to spatially aggregate the data using `Plankton_ts.jnl`.  I updated the variable name each time I ran it.  In
+the script, data are converted from mol C to g C and area is converted from km^2^ to m^2^.  Plankton carbon is then summed
+across the area of interest at each time step.  
+
+### Formatting plankton data for therMizer
+The ISIMIP data were combined and formatted for `therMizer` using the R script `Prep_Plankton_therMizer.Rmd`.  
+
+## Final Products
+This workflow results in the following file that is used as input for `therMizer`:  
+* `GFDL_resource_spectra_S1.03I0.85.dat`  
+
+It also creates time series of the spectra slopes and intercepts, because these can be helpful when trying to understand the
+resource.  
+* `GFDL_resource_intercept_S1.03I0.85.dat`  
+* `GFDL_resource_slope_S1.03I0.85.dat`
