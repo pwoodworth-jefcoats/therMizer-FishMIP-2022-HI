@@ -11,35 +11,58 @@ output:
 ---
 
 __Workflow for processing ISIMIP 3a data for use with therMizer__  
-This document describes the workflow for preparing the ISIMIP 3a temperature data for use in `therMizer`.  It includes prepping the temperature data itself (`ocean_temp_array`) as well as the two temperature-related arrays used in `therMizer`: `vertical_migration_array` and `exposure_array`.  
+This document describes the workflow for preparing the ISIMIP 3a temperature data for use in `therMizer`.  It includes
+prepping the temperature data itself (`ocean_temp_array`) as well as the two temperature-related arrays used in `therMizer`:
+`vertical_migration_array` and `exposure_array`.  
 
-The scripts mentioned are in ClimateForcing and ClimateForcing/Temperature.  Where possible, the data files are in ClimateForcing/Temperature/DataFiles.  Some of the data files are too large to include in this repository.
+The scripts mentioned are in ClimateForcing and ClimateForcing/Temperature.  Where possible, the data files are in
+ClimateForcing/Temperature/DataFiles.  Some of the data files are too large to include in this repository.
 
-Most of this workflow happens in [R](https://www.r-project.org/).  A few steps use [PyFerret](https://ferret.pmel.noaa.gov/Ferret/).  It's likely you could do the PyFerret steps in R.  I use PyFerret out of habit because it's a free language built specifically to handle large gridded datasets. 
+Most of this workflow happens in [R](https://www.r-project.org/).  A few steps use [PyFerret](https://ferret.pmel.noaa.gov/Ferret/).  
+It's likely you could do the PyFerret steps in R.  I use PyFerret out of habit because it's a free language built specifically
+to handle large gridded datasets. 
 
 ## Data Access
-The first step was accessing the ISIMIP data on levante.  This was done in the terminal using the code in `access_levante.txt`.  Just a note that the downloaded files from this step are very large.  I had to do this step on a linux server, not my laptop.
+The first step was accessing the ISIMIP data on levante.  This was done in the terminal using the code in
+`access_levante.txt`.  Just a note that the downloaded files from this step are very large.  I had to do this step on a linux
+server, not my laptop.
 
-I also used World Ocean Atlas (WOA) data as a baseline temperature.  I accessed the data with the PyFerret script `access_WOA.jnl`. 
+I also used World Ocean Atlas (WOA) data as a baseline temperature.  I accessed the data with the PyFerret script
+`access_WOA.jnl`. 
 
 ## Data Wrangling
-The remaining steps take the big, global, three-dimensional files from levante and WOA and pare them down to what's used for the FishMIP simulations.
+The remaining steps take the big, global, three-dimensional files from levante and WOA and pare them down to what's used for
+the FishMIP simulations.
 
 ### Clipping the geographic area of interest
-The first data wrangling step was clipping out the area of interest for the regional model.  Because this area isn't rectangular, I made a mask using `AreaMask.Rmd`.  It's built from the grid used in the files downloaded from levante and includes the area for each grid cell that's not masked.  (The area comes in handy when processing the plankton data, see `Workflow_Plankton.Rmd` for more on this.)  
+The first data wrangling step was clipping out the area of interest for the regional model.  Because this area isn't
+rectangular, I made a mask using `AreaMask.Rmd`.  It's built from the grid used in the files downloaded from levante and
+includes the area for each grid cell that's not masked.  (The area comes in handy when processing the plankton data, see
+`Workflow_Plankton.Rmd` for more on this.)  
 
-I used the area mask (`HIregion_area.nc`) with the PyFerret script `clip_global_to_HIregion_3D_plusMask.jnl` to select only the geographic area and depths that I needed.  The resulting files are still big, but not as big.  Because the initial files are so large, I had to do this step on a linux server.  The remaining steps were done on my laptop.
+I used the area mask (`HIregion_area.nc`) with the PyFerret script `clip_global_to_HIregion_3D_plusMask.jnl` to select only
+the geographic area and depths that I needed.  The resulting files are still big, but not as big.  Because the initial files
+are so large, I had to do this step on a linux server.  The remaining steps were done on my laptop.
 
-I also clipped the area of interest from the World Ocean Atlas (WOA) data using the area mask and the PyFerret script `clip_WOA_to_HIregion_plusMask.jnl`.  Note that this step included regridding the area grid to the more coarse WOA grid prior to clipping.
+I also clipped the area of interest from the World Ocean Atlas (WOA) data using the area mask and the PyFerret script
+`clip_WOA_to_HIregion_plusMask.jnl`.  Note that this step included regridding the area grid to the more coarse WOA grid prior
+to clipping.
 
 ### Spatial aggregation
-I used PyFerret to spatially aggregate the data sets using `RealmTemp_ts_gfdl.jnl` and `RealmTemp_ts_WOA.jnl`.  This is done in two steps.  First, the data are vertically averaged within each grid cell.  Then, they are spatially averaged over the area of interest.  
+I used PyFerret to spatially aggregate the data sets using `RealmTemp_ts_gfdl.jnl` and `RealmTemp_ts_WOA.jnl`.  This is done
+in two steps.  First, the data are vertically averaged within each grid cell.  Then, they are spatially averaged over the area
+of interest.  
 
 ### Formatting temperature data for therMizer
-The WOA and ISIMIP data were combined and formatted for `therMizer` using the R script `Prep_TempRealms_therMizer.Rmd`.  The WOA data is used as a baseline.  The difference between the experiment time steps and the 1961 - 1980 control climate average is added to this baseline.  This is done for each realm, and all realms are concatonated in `GFDL_ocean_temp_realm_array.dat`.  The control climate years 1961 - 1980 are repeated for the spin-up data, so this average is used for determining the change at each time step.  
+The WOA and ISIMIP data were combined and formatted for `therMizer` using the R script `Prep_TempRealms_therMizer.Rmd`.  The
+WOA data is used as a baseline.  The difference between the experiment time steps and the 1961 - 1980 control climate average
+is added to this baseline.  This is done for each realm, and all realms are concatonated in `GFDL_ocean_temp_realm_array.dat`.
+The control climate years 1961 - 1980 are repeated for the spin-up data, so this average is used for determining the change at
+each time step.  
 
 ### Creating `vertical_migration` and `exposure` arrays
-The `vertical_migration` and `exposure` arrays that are used to link temperature to fish in `therMizer` were created using `SetUp_Realms.Rmd`.
+The `vertical_migration` and `exposure` arrays that are used to link temperature to fish in `therMizer` were created using
+`SetUp_Realms.Rmd`.
 
 ## Final Products
 This workflow results in the following files that are used as input for `therMizer`:  
