@@ -1,0 +1,33 @@
+---
+title: "Workflow_Fishing"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-08'
+output: 
+  html_document:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+---
+
+__Workflow for processing ISIMIP 3a data for use with therMizer__  
+This document describes the workflow for preparing the ISIMIP 3a fishing data for use in `therMizer`.  
+
+The scripts mentioned are in FishingForcing.  Where possible, the data files are in FishingForcing/DataFiles.  Some of the
+data files are too large to include in this repository.
+
+This workflow happens in [R](https://www.r-project.org/).  
+
+## Data Access
+The first step was accessing the ISIMIP data.  These data were reconstructed by the FishMIP coordinators and provided in a shared Google Drive.  
+
+## Data Wrangling
+The remaining steps were to take the global files from the FishMIP coordinators and pare them down to what's used for the
+FishMIP simulations.  All these steps were completed with the script `Prep_Fishing_therMizer.Rmd`.  These steps included identifying the catch and effort data of interest, aggregating them across functional groups, scaling them to represent regional effort, and saving the output so that it can be used to force `therMizer`.
+
+## Final Products
+This workflow results in the following file that is used as input for `therMizer`:  
+* `HI_Monthly_Fishing_Mortality.csv`  
+
+It also creates a time series of catch that is used in comparing modeled results to observed catch:   
+* `HI_catch.csv`  
