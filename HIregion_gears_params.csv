@@ -1,0 +1,13 @@
+﻿species,gear,sel_func,knife_edge_size1,knife_edge_size2,catchability
+Bigeye,Longline,double_knife_edge,4771,44184,1
+Mahi,Longline,double_knife_edge,1417,4771,1
+BlueShark,Longline,double_knife_edge,5841,54093,1
+Skipjack,Longline,double_knife_edge,2124,7151,1
+Yellowfin,Longline,double_knife_edge,2600,29479,1
+Albacore,Longline,double_knife_edge,5841,19668,1
+StripedMarlin,Longline,double_knife_edge,7151,29479,1
+Wahoo,Longline,double_knife_edge,3183,13122,1
+Swordfish,Longline,double_knife_edge,1735,16065,1
+BlueMarlin,Longline,double_knife_edge,16065,54093,1
+Lancetfish,Longline,double_knife_edge,229,3897,1
+Opah,Longline,double_knife_edge,13122,36090,1
