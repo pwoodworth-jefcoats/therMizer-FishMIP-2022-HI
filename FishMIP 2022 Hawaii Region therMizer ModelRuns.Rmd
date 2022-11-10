@@ -1,0 +1,157 @@
+---
+title: "FishMIP 2022 Hawaii Region therMizer ModelRuns"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-08'
+output: html_document
+---
+
+## Model runs
+
+This script runs the two simulations: one with (histsoc) and one without (nat) fishing.
+
+Set up the environment:
+```{r}
+# Load libraries
+library("remotes")
+remotes::install_github("sizespectrum/therMizer")
+library("therMizer")
+```
+
+Set up the species parameters:
+```{r}
+# Load parameters 
+HIparams <- read.csv("HIregion_species_params.csv", header = TRUE)
+HIinter <- read.csv("HIregion_inter.csv", row.names = 1)
+HIinter <- as(HIinter,"matrix")
+HIgears <- read.csv("HIregion_gears_params.csv", header = TRUE)
+
+# Generate parameters
+params <- newMultispeciesParams(HIparams, interaction = HIinter, kappa = 1e12, min_w_pp = 1e-14, w_pp_cutoff = 455400) 
+```
+
+Set up time steps:
+```{r}
+time_steps <- seq(0,600,1)
+
+# I ran into trouble using any time steps that didn't start with 0.
+# I also had trouble using fractional time steps.  
+# So, what's here as year is really a month.  
+# Suggestions for a better solution welcome
+```
+
+Set up the resource:
+```{r}
+# Load resource spectra 
+# Note: You may need to update this path
+isimip_plankton <- read.table("ClimateForcing/GFDL_resource_spectra_S1.03I0.85.dat")
+isimip_plankton <- as(isimip_plankton, "matrix")
+sizes <- names(params@initial_n_pp)
+n_pp_array <- array(NA, dim = c(length(time_steps), length(sizes)), dimnames = list(time = time_steps, w = sizes))
+
+# Fill array
+# Need an extra time step preceding the simulation
+n_pp_array[1,] <- isimip_plankton[1,]
+for (t in seq(1,length(time_steps) - 1,1)) {
+  n_pp_array[t + 1,] <- isimip_plankton[t,]
+}
+```
+
+Set up temperature-related information:
+```{r}
+# Load ocean temp array
+# Note: You may need to update this path
+ocean_temp <- read.table("ClimateForcing/GFDL_ocean_temp_realm_array.dat")
+ocean_temp <- as(ocean_temp, "matrix")
+r <- colnames(ocean_temp)
+ocean_temp_array <- array(NA, dim = c(length(time_steps), length(r)), dimnames = list(time = time_steps, realm_names = r))
+ocean_temp_array[1,] <- ocean_temp[1,]
+for (t in seq(1,length(time_steps) - 1, 1)) {
+  ocean_temp_array[t + 1,] <- ocean_temp[t,]
+}
+
+# Load vertical migration and exposure
+load("HIregion_vertical_migration_array.Rdata") # Note: this is named vertical_migration_array
+
+HIexposure <- read.table("HIregion_exposure_array.dat")
+HIexposure <- as(HIexposure, "matrix")
+```
+
+Set up the needed fishing selectivity function:
+```{r}
+# We need to define our double knife-edge selectivity function to match that 
+# used in Woodworth-Jefcoats et al. 2019
+double_knife_edge <- function(w, knife_edge_size1, knife_edge_size2, ...) { 
+	sel <- rep(0, length(w)) 
+	
+	# Phased in linearly
+	F0 <- which(w < knife_edge_size1) # to find one size smaller than that fished, for the 0 value 
+	F1 <- which(w < knife_edge_size2) # to find end of escalation size range 
+	lo_sel <- max(F0):max(F1) 
+	sel[lo_sel] <- seq(0, 1, length = length(lo_sel)) # linear increase from 0 to F 
+	sel[w >= knife_edge_size2] <- 1 
+	return(sel) 
+} 
+```
+
+Add gear parameters:
+```{r}
+gear_params(params) <- HIgears
+```
+
+Load effort:
+```{r}
+# Load effort
+# Note: You may need to update this path
+isimip_effort <- read.csv("FishingForcing/HI_Monthly_Fishing_Mortality.csv")
+isimip_effort <- as(isimip_effort, "matrix")
+gear_name = c("Longline")
+effort_array <- array(NA, c(length(time_steps), length(gear_name)), dimnames = list(time = time_steps, gear = gear_name))
+effort_array[1,] = isimip_effort[1,2]
+for (t in seq(1,length(time_steps) - 1, 1)) {
+  effort_array[t + 1] <- isimip_effort[t,2]
+}
+```
+
+Add temperature and resource information to the parameters:
+```{r}
+params <- upgradeTherParams(params, ocean_temp_array = ocean_temp_array,
+                            n_pp_array = n_pp_array, 
+                            vertical_migration_array = vertical_migration_array,
+                            exposure_array = HIexposure, 
+                            aerobic_effect = TRUE, metabolism_effect = TRUE)
+
+# Nice test to see that things are working correctly
+plotThermPerformance(params)
+```
+
+Project to steady-state, with and without fishing:
+```{r}
+# Project to steady
+params_steady_F <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = effort_array[1]) 
+sim_steady_F <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = effort_array[1], return_sim = TRUE) 
+params_steady_noF <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = 0) 
+sim_steady_noF <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = 0, return_sim = TRUE) 
+
+# Test to see how things look
+plot(sim_steady_F)
+plot(sim_steady_noF)
+```
+
+Run simulations:
+```{r}
+# And do a simulation using the steady parameters
+projection_steady_F <- project(params_steady_F, dt = 1/12, t_max = 600, t_save = 1/12, effort = effort_array)
+projection_steady_noF <- project(params_steady_noF, dt = 1/12, t_max = 600, t_save = 1/12, effort = 0)
+
+# Test to see how things look
+plot(projection_steady_F)
+plot(projection_steady_noF)
+```
+
+Save output:
+```{r}
+# Save projections for investigating results and formatting for ISIMIP
+save(projection_steady_F, file = "projection_steady_F.Rdata")
+save(projection_steady_noF, file = "projection_steady_noF.Rdata")
+```
+
