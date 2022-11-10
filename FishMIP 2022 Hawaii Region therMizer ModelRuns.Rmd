@@ -132,9 +132,14 @@ sim_steady_F <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effo
 params_steady_noF <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = 0) 
 sim_steady_noF <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = 0, return_sim = TRUE) 
 
+# Include a validation run with F = 0.2 (the estimated F for most of the species modeled, per stock assessments)
+params_steady_validate <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = 0.2) 
+sim_steady_validate <- projectToSteady(params, t_max = 600, dt = 1/12, tol = 1e-7, effort = 0.2, return_sim = TRUE) 
+
 # Test to see how things look
 plot(sim_steady_F)
 plot(sim_steady_noF)
+plot(sim_steady_validate)
 ```
 
 Run simulations:
@@ -151,6 +156,7 @@ plot(projection_steady_noF)
 Save output:
 ```{r}
 # Save projections for investigating results and formatting for ISIMIP
+save(sim_steady_validate, file = "sim_steady_validate.Rdata")
 save(projection_steady_F, file = "projection_steady_F.Rdata")
 save(projection_steady_noF, file = "projection_steady_noF.Rdata")
 ```
