@@ -1,0 +1,34 @@
+---
+title: "Workflow_therMizer"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-08'
+output: 
+  html_document:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+---
+
+__Workflow for running therMizer__  
+This document describes the workflow for running therMizer for FishMIP 2022 ISIMIP 3a.  
+
+This workflow happens in [R](https://www.r-project.org/).  
+
+## Running a Simulation
+The script `FishMIP 2022 Hawaii Region therMizer ModelRuns.Rmd` was used to run the requested scenarios as well as a 
+validation scenario.
+
+## Validate Output
+The script `FishMIP_validation.Rmd` was used to validate the model output by comparing the size structure of modeled and observed catch.
+The observed data aren't posted to this repository.  The data are number caught at size, with size classes matching those used in this
+simulation runs.
+
+## Final Products
+This workflow results in the following files that are subsequently packaged as requested by ISIMIP:  
+* `sim_steady_validate.Rdata`  
+* `projection_steady_F.Rdata`  
+* `projection_steady_noF.Rdata`
+
+
+
