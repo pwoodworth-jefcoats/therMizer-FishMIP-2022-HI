@@ -1,0 +1,55 @@
+The following equations were used to convert length in cm (L) to weight in grams  (W)for therMizer's contribution to FishMIP:
+
+Albacore Tuna (average of 4 quarterly equations):
+W_q1 = (8.7 * 10^-5 * L^2.67) * 1000
+W_q2 = (3.9 * 10^-5 * L^2.84) * 1000
+W_q3 = (2.1 * 10^-5 * L^2.99) * 1000
+W_q4 = (2.8 * 10^-5 * L^2.92) * 1000
+W = (W_q1 + W_q2 + W_q3 + W_q4) / 4
+
+Bigeye Tuna:
+W = (3.66 * 10^-5 * L^2.90182) * 1000
+
+Bigeye Thresher Shark:
+W = (9.11 * 10^-6 * L^3.0802) * 1000
+
+Blue Marlin (average of males and females):
+W_m = (1.37 * 10^-5 * L^2.975) * 1000
+W_f = (1.84 * 10^-5 * L^2.956) * 1000
+W = (W_m + W_f) / 2
+
+Blue Shark (average of males and females):
+W_m = (3.29 * 10^-6 * L^3.225) * 1000
+W_f = (5.39 * 10^-6 * L^3.102) * 1000
+W = (W_m + W_f) / 2
+
+Lancetfish:
+W = (6.01 * 10^-6 * L^2.78949) * 1000
+
+Mahi (average of males and females):
+W_m = (8.09 * 10^-6 * L^3.0157) * 1000
+W_f = (1.07 * 10^-5 * L^2.9337) * 1000
+W = (W_m + W_f) / 2
+
+Opah (average of males and females)
+ln(W_m) = 2.5692 * ln(L) - 8.2368 
+ln(W_f) = 2.5815 * ln(L) - 8.3379
+W = (W_m + W_f) / 2 * 1000
+
+Shortfin Mako Shark:
+W = (1.67 * 10^-5 * L^2.847) * 1000	
+
+Skipjack Tuna:
+W = (7.65 * 10^-6 * L^3.24281) * 1000
+
+Striped Marlin:
+W = (4.68 * 10^-6 * L^3.16) * 1000
+
+Swordfish:
+W = (1.37 * 10^-5 * L^3.04) * 1000
+
+Wahoo (L in mm, not cm):
+W = (8.77 * 10^-10 * L^3.28) * 1000
+
+Yellowfin Tuna:
+W = (3.17 * 10^-5 * L^2.88938) * 1000

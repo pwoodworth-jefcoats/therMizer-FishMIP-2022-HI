@@ -1,0 +1,64 @@
+---
+title: "Workflow_Output"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-10'
+output: 
+  html_document:
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+---
+
+__Workflow for packaging therMizer output for ISIMIP__  
+This document describes the workflow for packaging the therMizer output for FishMIP 2022 ISIMIP 3a.  
+
+The scripts and files mentioned are in PackagingOutput and PackagingOutput/DataFiles.  Note that the simulation runs themselves are too
+large to share in this repository.
+
+This workflow happens in [R](https://www.r-project.org/), with the exception of using [PyFerret](https://ferret.pmel.noaa.gov/Ferret/) to determine the domain area.  
+
+## Information needed
+This workflow follows the FishMIP protocol, in terms of requested output.  It also requires length-weight conversions for the 
+12 modeled species.  The references for these conversions can be found in [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).  The actual conversions can be found in 
+`therMizer_LtoWconvesions.txt`
+
+The script `Hawaii_LtoWconversions.Rmd` was used to determine each species weight in grams at 30 and 90 cm.  This will be used to
+determine which species fall within each requested size range.  The species-specific weight-at-lengths are found in `wgts_30cm.dat` and
+`wgts_90cm.dat`.
+
+The area of the model domain, in square meters, is 1.946 $\times$ 10^13^ [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).
+When working with the area mask in PyFerret (say, while prepping the plankton or temperature), this information is obtained with:  
+list AREA[x=@sum, y=@sum]
+
+## File naming conventions
+When naming the output, the model name is `mizer`.  This is because the core model used for these runs is `mizer` and `therMizer` is 
+simply an extension of this platform.  This convention follows guidance from ISIMIP.  The region is "hawaii" following previous simulation rounds.
+
+Files names for runs with fishing:
+mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_<variable>_hawaii_monthly_1961_2010.csv
+
+File names for runs without fishing:
+mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_<variable>_hawaii_monthly_1961_2010.csv
+
+## Packaging output
+The script `package_output.Rmd` was used to package the output files to meet ISIMIP's protocol.
+
+## Final Products
+This workflow results in the following output files requested by ISIMIP:  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_tcb_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_tcb_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_tcblog10_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_tcblog10_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_tpb _hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_tpb_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_tc_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_tic_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_tclog10_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_bp30to90cm_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_bp30to90cm_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_bp90cm_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_bp90cm_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_cp30to90cm_hawaii_monthly_1961_2010.csv  
+* mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_cp90cm_hawaii_monthly_1961_2010.csv  
+

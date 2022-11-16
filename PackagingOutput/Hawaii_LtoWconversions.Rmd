@@ -1,0 +1,115 @@
+---
+title: "Hawaii_LtoWconversions"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: "8/26/2020"
+output:
+  html_document:
+    toc: yes
+    fig_width: 10
+    fig_height: 5
+---
+
+## Purpose
+
+The purpose of this script is to determine species' weights at 30 and 90 cm.  Weights are in g. 
+
+``` {r}
+
+# Function to determine W at L
+wgt <- function(species,L){
+	
+	if (species == "Albacore"){
+		# The relationship used in Uchiyama and Kazama (2003)
+		# wgt_g <- (6.16388 - 0.323931*L + 0.00600216*L^1.94647) * 1000
+		# breaks down at sizes < 33cm, so this uses the relationship from the
+		# 2017 stock assessment, which uses a different relationship for each 
+	  # quarter of the year
+		
+		wgt_g_q1 <- (8.7 * 10^-5 * L^2.67) * 1000
+		wgt_g_q2 <- (3.9 * 10^-5 * L^2.84) * 1000
+		wgt_g_q3 <- (2.1 * 10^-5 * L^2.99) * 1000
+		wgt_g_q4 <- (2.8 * 10^-5 * L^2.92) * 1000
+		
+		wgt_g <- (wgt_g_q1 + wgt_g_q2 + wgt_g_q3 + wgt_g_q4) / 4
+		
+	} else if (species == "Bigeye"){
+		wgt_g <- (3.66 * 10^-5 * L^2.90182) * 1000
+	} else if (species == "BigeyeThresher"){
+		wgt_g <- (9.11 * 10^-6 * L^3.0802) * 1000
+	} else if (species == "BlueMarlin"){
+		# Average of males and females
+		wgt_g_m <- (1.37 * 10^-5 * L^2.975) * 1000
+		wgt_g_f <- (1.84 * 10^-5 * L^2.956) * 1000
+		
+		wgt_g <- (wgt_g_m + wgt_g_f) / 2
+	} else if (species == "BlueShark"){
+		# Average of males and females
+		wgt_g_m <- (3.29 * 10^-6 * L^3.225) * 1000
+		wgt_g_f <- (5.39 * 10^-6 * L^3.102) * 1000
+		
+		wgt_g <- (wgt_g_m + wgt_g_f) / 2
+	} else if (species == "Lancetfish"){
+		wgt_g <- (6.01 * 10^-6 * L^2.78949) * 1000
+	} else if (species == "Mahi"){
+		# Average of males and females
+		wgt_g_m <- (8.09 * 10^-6 * L^3.0157) * 1000
+		wgt_g_f <- (1.07 * 10^-5 * L^2.9337) * 1000
+		
+		wgt_g <- (wgt_g_m + wgt_g_f) / 2
+ 	} else if (species == "Opah"){
+ 		# Average of males and females
+ 		wgt_lng_m <- 2.5692 * log(L) - 8.2368 
+ 		wgt_lng_f <- 2.5815 * log(L) - 8.3379
+ 		
+ 		#Convert from natural log of weight
+ 		wgt_g_m <- exp(wgt_lng_m)
+ 		wgt_g_f <- exp(wgt_lng_f)
+ 		
+ 		wgt_g <- (wgt_g_m + wgt_g_f) / 2 * 1000
+ 	} else if (species == "ShortfinMako"){
+ 		wgt_g <- (1.67 * 10^-5 * L^2.847) * 1000	
+ 	} else if (species == "Skipjack"){
+ 		wgt_g <- (7.65 * 10^-6 * L^3.24281) * 1000
+ 	} else if (species == "StripedMarlin"){
+ 		wgt_g <- (4.68 * 10^-6 * L^3.16) * 1000
+ 	} else if (species == "Swordfish"){
+ 		wgt_g <- (1.37 * 10^-5 * L^3.04) * 1000
+ 	} else if (species == "Wahoo"){
+ 		# Convert length from cm to mm
+ 		Lmm <- L*10
+ 		
+ 		wgt_g <- (8.77 * 10^-10 * Lmm^3.28) * 1000
+ 	} else if (species == "Yellowfin"){
+ 		wgt_g <- (3.17 * 10^-5 * L^2.88938) * 1000
+ 	}
+	
+	return(wgt_g)
+}
+
+# These two arrays will be input into the fuction above
+sp_30cm <- array(NA, c(12,2))
+sp_30cm[1:12,1] <- c("Bigeye","Mahi","BlueShark","Skipjack","Yellowfin","Albacore","StripedMarlin","Wahoo","Swordfish","BlueMarlin","Lancetfish","Opah")
+sp_30cm[1:12,2] <- rep(30,12)
+
+sp_90cm <- array(NA, c(12,2))
+sp_90cm[1:12,1] <- c("Bigeye","Mahi","BlueShark","Skipjack","Yellowfin","Albacore","StripedMarlin","Wahoo","Swordfish","BlueMarlin","Lancetfish","Opah")
+sp_90cm[1:12,2] <- rep(90,12)
+
+# These two arrays will hold the output from the function above
+wgts_30cm <- array(NA, c(12,2))
+wgts_90cm <- array(NA, c(12,2))
+wgts_30cm[1:12,1] <- c("Bigeye","Mahi","BlueShark","Skipjack","Yellowfin","Albacore","StripedMarlin","Wahoo","Swordfish","BlueMarlin","Lancetfish","Opah")
+wgts_90cm[1:12,1] <- c("Bigeye","Mahi","BlueShark","Skipjack","Yellowfin","Albacore","StripedMarlin","Wahoo","Swordfish","BlueMarlin","Lancetfish","Opah")
+
+for (r in seq(1,12,1)){
+	wgts_30cm[r,2] <- wgt(sp_30cm[r,1],as(sp_30cm[r,2], "numeric"))
+	wgts_90cm[r,2] <- wgt(sp_90cm[r,1],as(sp_90cm[r,2], "numeric"))
+}
+
+# Save output
+write.table(wgts_30cm, file = "wgts_30cm.dat", quote = FALSE)
+write.table(wgts_90cm, file = "wgts_90cm.dat", quote = FALSE)
+
+# It's possible to combine these into a single matrix, but separating them makes it easier for me to keep things straight.
+
+```

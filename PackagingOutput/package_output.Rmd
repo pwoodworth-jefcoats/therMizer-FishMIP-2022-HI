@@ -1,0 +1,377 @@
+---
+title: "package_output"
+author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
+date: '2022-11-10'
+output: html_document
+---
+
+## Package output
+
+This script is used to package up the therMizer output for submission to ISIMIP.
+
+Set up the environment:
+```{r}
+# Load libraries
+library("remotes")
+remotes::install_github("sizespectrum/therMizer")
+library("therMizer")
+library("lubridate") # for the time identifiers
+library("tidyverse") # for combining numbers and dates, and for writing files
+```
+
+Load needed information:
+```{r}
+# These are the species-specific weights at 30 and 90 cm.
+wgts_30cm <- read.table("wgts_30cm.dat")
+wgts_90cm <- read.table("wgts_90cm.dat")
+
+# This is the domain area, in square meters:
+area <- 1.946 * 10^13
+
+# Set up time steps that reflect actual months used, 
+# noting that ISIMIP requests time as months since 1 January 1840
+t_start <- ((1961 - 1840) * 12) - 1
+time_steps <- seq(t_start, t_start + 599, 1)
+
+# And time in year-month-day format
+ymd_start <- ymd(19610101)
+ymd_steps <- c(ymd_start)
+t <- 1
+while (t < 600) {
+  ymd_next <- ymd_steps[length(ymd_steps)] + months(1)
+  ymd_steps <- c(ymd_steps, ymd_next)
+  t <- t + 1
+}
+```
+
+Load model output:
+```{r}
+load("projection_steady_F.Rdata")
+load("projection_steady_noF.Rdata")
+```
+
+Some helpful reference points:
+```{r}
+min_w <- min(projection_steady_F@params@w)
+max_w <- max(projection_steady_F@params@w)
+sp_w_inf <- projection_steady_F@params@species_params$w_inf
+```
+
+Write some helpful functions:
+```{r}
+# Taking advantage of mizer's built in function for this
+# Writing functions that divide biomass and catch by area and sums across all species
+# Note that the timesteps of interest (1:600, omitting time zero) are coded into the functions
+# This saved me time later, but may not be the best approach.
+# These functions also require a list of numeric species indices.
+
+# Biomass - total and for size bins
+tcb <- function(scenario, min_wt, max_wt, sp){
+	consumer_biomass <- getBiomass(scenario, min_w = min_wt, max_w = max_wt)
+	
+	if (length(sp) > 1) {
+	  consumer_gm2 <- apply(sweep(consumer_biomass[2:601,sp], 2, area, "/"), 1, sum)
+	} else {
+	  consumer_gm2 <- consumer_biomass[2:601,sp] / area
+	}
+	
+	return(consumer_gm2)
+}
+
+# Catch - total
+tc <- function(scenario, sp){
+  catch <- getYield(scenario)
+  
+  if (length(sp) > 1) {
+    catch_gm2 <- apply(sweep(catch[2:601,sp], 2, area, "/"), 1, sum)
+  } else {
+    catch_gm2 <- catch[2:601,sp] / area
+  }
+  
+  return(catch_gm2)
+}
+
+# Catch in size bins
+tc_size_bins <- function(scenario, min_wt, max_wt) {
+  
+  # Sizes of interest
+  sz <- which(scenario@params@w >= min_wt & scenario@params@w <= max_wt)
+ 
+  # Fishing mortality
+  fishing_mortality <- getFMort(scenario)
+  
+  # Catch in numbers at size
+  catch_n <- sweep(scenario@n[2:601,,sz], c(1,2,3), fishing_mortality[2:601,,sz], "*")
+  
+  # Biomass of catch at size summed across all sizes
+  catch_sp <- apply(sweep(catch_n, 3, scenario@params@w[sz] * scenario@params@dw[sz], "*"), c(1,2), sum)
+  
+  # Sum across all species and divide by area
+  catch_gm2 <- apply(sweep(catch_sp, 2, area, "/"), 1, sum)
+  
+  return(catch_gm2)
+}
+
+```
+
+Create requested variables, plot them to make sure they're reasonable, and save them.
+
+Total Consumer & Pelagic Biomass Density (tcb & tpb), all consumers:
+```{r}
+# Note: the 1:12 is to include all 12 species
+
+tcb_histsoc <- tibble(time_steps, ymd_steps, tcb(projection_steady_F, min_w, max_w, 1:12))
+colnames(tcb_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "tcb.gm-2")
+tcb_nat <- tibble(time_steps, ymd_steps, tcb(projection_steady_noF, min_w, max_w, 1:12))
+colnames(tcb_nat) <- c("Months.Since.1Jan1840", "Year.Month.Day", "tcb.gm-2")
+
+tpb_histsoc <- tibble(time_steps, ymd_steps, tcb(projection_steady_F, min_w, max_w, 1:12))
+colnames(tpb_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "tpb.gm-2")
+tpb_nat <- tibble(time_steps, ymd_steps, tcb(projection_steady_noF, min_w, max_w, 1:12))
+colnames(tpb_nat) <- c("Months.Since.1Jan1840", "Year.Month.Day", "tpb.gm-2")
+```
+
+Total consumer biomass density in log10 weight bins (tcblog10):
+```{r}
+tcblog10_histsoc <- tibble(time_steps,
+                           ymd_steps,
+                           tcb(projection_steady_F, 10^0, 10^1, 1:12),
+                           tcb(projection_steady_F, 10^1, 10^2, 1:12),
+                           tcb(projection_steady_F, 10^2, 10^3, 1:12),
+                           tcb(projection_steady_F, 10^3, 10^4, 1:12),
+                           tcb(projection_steady_F, 10^4, 10^5, 1:12), 
+                           tcb(projection_steady_F, 10^5, max_w, 1:12))
+colnames(tcblog10_histsoc) <- c("Months.Since.1Jan1840", 
+                                "Year.Month.Day", 
+                                "1to10g.gm-2",
+                                "10to100g.gm-2",
+                                "100gto1kg.gm-2",
+                                "1to10kg.gm-2",
+                                "10to100kg.gm-2",
+                                "GT100kg.gm-2")
+
+tcblog10_nat <- tibble(time_steps,
+                           ymd_steps,
+                           tcb(projection_steady_noF, 10^0, 10^1, 1:12),
+                           tcb(projection_steady_noF, 10^1, 10^2, 1:12),
+                           tcb(projection_steady_noF, 10^2, 10^3, 1:12),
+                           tcb(projection_steady_noF, 10^3, 10^4, 1:12),
+                           tcb(projection_steady_noF, 10^4, 10^5, 1:12), 
+                           tcb(projection_steady_noF, 10^5, max_w, 1:12))
+colnames(tcblog10_nat) <- c("Months.Since.1Jan1840", 
+                                "Year.Month.Day", 
+                                "1to10g.gm-2",
+                                "10to100g.gm-2",
+                                "100gto1kg.gm-2",
+                                "1to10kg.gm-2",
+                                "10to100kg.gm-2",
+                                "GT100kg.gm-2")
+```
+
+Total catch density and total industrial catch density (tc & tic):
+```{r}
+tc_histsoc <- tibble(time_steps, ymd_steps, tc(projection_steady_F, 1:12))
+colnames(tc_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "tc.gm-2")
+
+tic_histsoc <- tibble(time_steps, ymd_steps, tc(projection_steady_F, 1:12))
+colnames(tic_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "tic.gm-2")
+```
+
+Total catch density in log10 weight bins (tclog10):
+```{r}
+tclog10_histsoc <- tibble(time_steps,
+                           ymd_steps,
+                           tc_size_bins(projection_steady_F, 10^0, 10^1),
+                           tc_size_bins(projection_steady_F, 10^1, 10^2),
+                           tc_size_bins(projection_steady_F, 10^2, 10^3),
+                           tc_size_bins(projection_steady_F, 10^3, 10^4),
+                           tc_size_bins(projection_steady_F, 10^4, 10^5), 
+                           tc_size_bins(projection_steady_F, 10^5, max_w))
+colnames(tclog10_histsoc) <- c("Months.Since.1Jan1840", 
+                                "Year.Month.Day", 
+                                "1to10g.gm-2",
+                                "10to100g.gm-2",
+                                "100gto1kg.gm-2",
+                                "1to10kg.gm-2",
+                                "10to100kg.gm-2",
+                                "GT100kg.gm-2")
+```
+
+Optional output: biomass and catch density of small pelagics with L infinity <30cm (bp30cm & cp30cm):
+```{r}
+# This model has no species that fit this category
+sp_LT30cm <- which(wgts_30cm[,2] > sp_w_inf)
+```
+
+Optional output: biomass and catch density of medium pelagics with 30cm<=L_infinity<90cm (bp30to90cm & cp30to90cm):
+```{r}
+# Identify species with L infinity < 90cm
+sp3090 <- which(wgts_90cm[,2] > sp_w_inf)
+
+bp30to90cm_histsoc <- tibble(time_steps, ymd_steps, tcb(projection_steady_F, min_w, max_w, sp3090))
+colnames(bp30to90cm_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "bp30to90cm.gm-2")
+bp30to90cm_nat <- tibble(time_steps, ymd_steps, tcb(projection_steady_noF, min_w, max_w, sp3090))
+colnames(bp30to90cm_nat) <- c("Months.Since.1Jan1840", "Year.Month.Day", "bp30to90cm.gm-2")
+
+cp30to90cm_histsoc <- tibble(time_steps, ymd_steps, tc(projection_steady_F, sp3090))
+colnames(cp30to90cm_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "cp30to90cm.gm-2")
+```
+
+Optional output: biomass and catch density of large pelagics with L infinity >=90 cm (bp90cm & cp90cm)
+```{r}
+sp90 <- which(wgts_90cm[,2] < sp_w_inf)
+
+bp90cm_histsoc <- tibble(time_steps, ymd_steps, tcb(projection_steady_F, min_w, max_w, sp90))
+colnames(bp90cm_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "bp90cm.gm-2")
+bp90cm_nat <- tibble(time_steps, ymd_steps, tcb(projection_steady_noF, min_w, max_w, sp90))
+colnames(bp90cm_nat) <- c("Months.Since.1Jan1840", "Year.Month.Day", "bp90cm.gm-2")
+
+cp90cm_histsoc <- tibble(time_steps, ymd_steps, tc(projection_steady_F, sp90))
+colnames(cp90cm_histsoc) <- c("Months.Since.1Jan1840", "Year.Month.Day", "cp90cm.gm-2")
+```
+
+Plot the output to make sure it looks reasonable in comparison to previous FishMIP runs, plotting each 
+scenario separately because they're of such different orders of magnitude:
+```{r}
+#tcb - confused by order of magnitude greater than last GFDL-forced scenario, episodic nature of output.
+par(mfrow = c(2,1))
+plot(ymd_steps, tcb_histsoc$`tcb.gm-2`, type = "l")
+plot(ymd_steps, tcb_nat$`tcb.gm-2`, type = "l")
+```
+
+```{r}
+# tbp - confused by order of magnitude greater than last GFDL-forced scenario, episodic nature of output.
+par(mfrow = c(2,1))
+plot(ymd_steps, tpb_histsoc$`tpb.gm-2`, type = "l")
+plot(ymd_steps, tpb_nat$`tpb.gm-2`, type = "l")
+```
+
+```{r}
+# tcblog10 - order of magnitude greater than last GFDL-forced scenario (except where noted otherwise)
+par(mfrow = c(2,1))
+plot(ymd_steps, tcblog10_histsoc$`1to10g.gm-2`, type = "l")
+plot(ymd_steps, tcblog10_nat$`1to10g.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tcblog10_histsoc$`10to100g.gm-2`, type = "l")
+plot(ymd_steps, tcblog10_nat$`10to100g.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tcblog10_histsoc$`100gto1kg.gm-2`, type = "l")
+plot(ymd_steps, tcblog10_nat$`100gto1kg.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tcblog10_histsoc$`1to10kg.gm-2`, type = "l") 
+plot(ymd_steps, tcblog10_nat$`1to10kg.gm-2`, type = "l") # extremely similar
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tcblog10_histsoc$`10to100kg.gm-2`, type = "l") 
+plot(ymd_steps, tcblog10_nat$`10to100kg.gm-2`, type = "l") 
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tcblog10_histsoc$`GT100kg.gm-2`, type = "l") 
+plot(ymd_steps, tcblog10_nat$`GT100kg.gm-2`, type = "l") 
+```
+
+```{r}
+# tc - order of magnitude greater and episodic
+par(mfrow = c(2,1))
+plot(ymd_steps, tc_histsoc$`tc.gm-2`, type = "l") 
+```
+
+```{r}
+# tic - not requested in prior rounds
+par(mfrow = c(2,1))
+plot(ymd_steps, tic_histsoc$`tic.gm-2`, type = "l") 
+```
+
+```{r}
+# tclog10 
+# no catch 1 - 100g as before
+# 100g and greater: order of magnitude greater
+par(mfrow = c(2,1))
+plot(ymd_steps, tclog10_histsoc$`1to10g.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tclog10_histsoc$`10to100g.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tclog10_histsoc$`100gto1kg.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tclog10_histsoc$`1to10kg.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tclog10_histsoc$`10to100kg.gm-2`, type = "l")
+
+par(mfrow = c(2,1))
+plot(ymd_steps, tclog10_histsoc$`GT100kg.gm-2`, type = "l")
+```
+
+```{r}
+# bp30to90cm - order of magnitude greater, though nat more similar
+par(mfrow = c(2,1))
+plot(ymd_steps, bp30to90cm_histsoc$`bp30to90cm.gm-2`, type = "l")
+plot(ymd_steps, bp30to90cm_nat$`bp30to90cm.gm-2`, type = "l")
+```
+
+```{r}
+# bp90cm - order of magnitude greater
+par(mfrow = c(2,1))
+plot(ymd_steps, bp90cm_histsoc$`bp90cm.gm-2`, type = "l")
+plot(ymd_steps, bp90cm_nat$`bp90cm.gm-2`, type = "l")
+```
+
+```{r}
+# cp30to90cm - order of magnitude greater
+par(mfrow = c(2,1))
+plot(ymd_steps, cp30to90cm_histsoc$`cp30to90cm.gm-2`, type = "l")
+```
+
+```{r}
+# cp90cm - order of magnitude greater
+par(mfrow = c(2,1))
+plot(ymd_steps, cp90cm_histsoc$`cp90cm.gm-2`, type = "l")
+```
+
+Need to check:   
+* plankton forcings in comparison to previous GFDL forcing, slopes and intercept
+  + Slopes are shallower and intercepts are greater (though intercepts are scaled the same as in previous round).  
+  + Intentional differences in how plankton were aggregated  
+* F in comparison to previous round  
+  + Effort higher this round, over twice as high at some time steps
+
+Create some handy file name strings, for sanity:
+```{r}
+pre_var_histsoc <- c("mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_")
+pre_var_nat <- c("mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_")
+post_var <- c("_hawaii_monthly_1961_2010.csv")
+```
+
+Save each variable to its own file:
+```{r}
+write_csv(tcb_histsoc, file = paste("Output/", pre_var_histsoc, "tcb", post_var, sep = ""))
+write_csv(tcb_nat, file = paste("Output/", pre_var_nat, "tcb", post_var, sep = ""))
+
+write_csv(tcblog10_histsoc, file = paste("Output/", pre_var_histsoc, "tcblog10", post_var, sep = ""))
+write_csv(tcblog10_nat, file = paste("Output/", pre_var_nat, "tcblog10", post_var, sep = ""))
+
+write_csv(tpb_histsoc, file = paste("Output/", pre_var_histsoc, "tpb", post_var, sep = ""))
+write_csv(tpb_nat, file = paste("Output/", pre_var_nat, "tpb", post_var, sep = ""))
+
+write_csv(tc_histsoc, file = paste("Output/", pre_var_histsoc, "tc", post_var, sep = ""))
+
+write_csv(tic_histsoc, file = paste("Output/", pre_var_histsoc, "tic", post_var, sep = ""))
+
+write_csv(tclog10_histsoc, file = paste("Output/", pre_var_histsoc, "tclog10", post_var, sep = ""))
+
+write_csv(bp30to90cm_histsoc, file = paste("Output/", pre_var_histsoc, "bp30to90cm", post_var, sep = ""))
+write_csv(bp30to90cm_nat, file = paste("Output/", pre_var_nat, "bp30to90cm", post_var, sep = ""))
+
+write_csv(bp90cm_histsoc, file = paste("Output/", pre_var_histsoc, "bp90cm", post_var, sep = ""))
+write_csv(bp90cm_nat, file = paste("Output/", pre_var_nat, "bp90cm", post_var, sep = ""))
+
+write_csv(cp30to90cm_histsoc, file = paste("Output/", pre_var_histsoc, "cp30to90cm", post_var, sep = ""))
+
+write_csv(cp90cm_histsoc, file = paste("Output/", pre_var_histsoc, "cp90cm", post_var, sep = ""))
+```
