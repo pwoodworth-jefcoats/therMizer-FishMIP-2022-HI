@@ -1,13 +1,14 @@
 ---
 title: "Prep_TempRealms_therMizer"
 author: "Phoebe.Woodworth-Jefcoats@noaa.gov"
-date: '2022-07-05'
+date: '2022-11-07'
 output: html_document
 ---
 
 ## Prep temperature forcing for input into therMizer
 
-This script uses the files output by SpeciesTemp_ts.jnl (for use with [PyFerret](https://ferret.pmel.noaa.gov/Ferret/)) to create an `ocean_temp` array that will be used by therMizer.  These are temperatures that have been vertically averaged over each species' depth range and then spatially averaged over the model domain.  For details on this, see [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).
+This script uses the files output by RealmTemp_ts_gfdl.jnl and RealmTemp_ts_WOA.jnl (for use with [PyFerret](https://ferret.pmel.noaa.gov/Ferret/)) 
+to create an `ocean_temp` array that will be used by therMizer.  These are temperatures that have been vertically averaged over each species' depth range and then spatially averaged over the model domain.  For details on this, see [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).
 
 ```{r}
 # Load WOA baseline, skipping the 6-line header
