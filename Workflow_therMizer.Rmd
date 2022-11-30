@@ -16,7 +16,7 @@ This document describes the workflow for running therMizer for FishMIP 2022 ISIM
 This workflow happens in [R](https://www.r-project.org/).  
 
 ## Running a Simulation
-The script `FishMIP 2022 Hawaii Region therMizer ModelRuns.Rmd` was used to run the requested scenarios as well as a 
+The script `FishMIP_2022_Hawaii_Region_therMizer_ModelRuns.Rmd` was used to run the requested scenarios as well as a 
 validation scenario.
 
 ## Validate Output
