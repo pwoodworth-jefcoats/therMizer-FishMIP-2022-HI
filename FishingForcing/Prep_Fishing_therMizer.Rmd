@@ -72,7 +72,7 @@ This will equate to F = 0.2.  Scale the other time points accordingly.
 
 # Determine 1995 - 2004 average
 Baseline_idx <- which(HI_ann_NomActive[,1] >= 1995 & HI_ann_NomActive[,1] <= 2004)
-Baseline_NomActive <- HI_ann_NomActive[Baseline_idx,2]
+Baseline_NomActive <- mean(HI_ann_NomActive[Baseline_idx,2])
 
 # Empty array to fill
 HI_Ann_F <- matrix(NA, 50, 2)
