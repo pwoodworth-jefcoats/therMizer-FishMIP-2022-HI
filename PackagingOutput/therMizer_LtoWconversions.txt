@@ -10,9 +10,6 @@ W = (W_q1 + W_q2 + W_q3 + W_q4) / 4
 Bigeye Tuna:
 W = (3.66 * 10^-5 * L^2.90182) * 1000
 
-Bigeye Thresher Shark:
-W = (9.11 * 10^-6 * L^3.0802) * 1000
-
 Blue Marlin (average of males and females):
 W_m = (1.37 * 10^-5 * L^2.975) * 1000
 W_f = (1.84 * 10^-5 * L^2.956) * 1000
@@ -35,9 +32,6 @@ Opah (average of males and females)
 ln(W_m) = 2.5692 * ln(L) - 8.2368 
 ln(W_f) = 2.5815 * ln(L) - 8.3379
 W = (W_m + W_f) / 2 * 1000
-
-Shortfin Mako Shark:
-W = (1.67 * 10^-5 * L^2.847) * 1000	
 
 Skipjack Tuna:
 W = (7.65 * 10^-6 * L^3.24281) * 1000
