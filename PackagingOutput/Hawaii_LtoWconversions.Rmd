@@ -86,7 +86,7 @@ wgt <- function(species,L){
 	return(wgt_g)
 }
 
-# These two arrays will be input into the fuction above
+# These two arrays will be input into the function above
 sp_30cm <- array(NA, c(12,2))
 sp_30cm[1:12,1] <- c("Bigeye","Mahi","BlueShark","Skipjack","Yellowfin","Albacore","StripedMarlin","Wahoo","Swordfish","BlueMarlin","Lancetfish","Opah")
 sp_30cm[1:12,2] <- rep(30,12)
