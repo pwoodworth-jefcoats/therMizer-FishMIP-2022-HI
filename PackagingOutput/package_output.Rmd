@@ -334,13 +334,6 @@ par(mfrow = c(2,1))
 plot(ymd_steps, cp90cm_histsoc$`cp90cm.gm-2`, type = "l")
 ```
 
-Need to check:   
-* plankton forcings in comparison to previous GFDL forcing, slopes and intercept
-  + Slopes are shallower and intercepts are greater (though intercepts are scaled the same as in previous round).  
-  + Intentional differences in how plankton were aggregated  
-* F in comparison to previous round  
-  + Effort higher this round, over twice as high at some time steps
-
 Create some handy file name strings, for sanity:
 ```{r}
 pre_var_histsoc <- c("mizer_gfdl-mom6-cobalt2_none_obsclim_histsoc_15arcmin_")
