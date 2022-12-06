@@ -16,12 +16,12 @@ This document describes the workflow for packaging the therMizer output for Fish
 The scripts and files mentioned are in PackagingOutput and PackagingOutput/DataFiles.  Note that the simulation runs themselves are too
 large to share in this repository.
 
-This workflow happens in [R](https://www.r-project.org/), with the exception of using [PyFerret](https://ferret.pmel.noaa.gov/Ferret/) to determine the domain area.  
+This workflow happens in [R](https://www.r-project.org/), with the exception of using [PyFerret](https://ferret.pmel.noaa.gov/Ferret/) to determine the domain area and a terminal to submit the output to DKRZ.  
 
 ## Information needed
 This workflow follows the FishMIP protocol, in terms of requested output.  It also requires length-weight conversions for the 
 12 modeled species.  The references for these conversions can be found in [Woodworth-Jefcoats et al. 2019](https://www.frontiersin.org/articles/10.3389/fmars.2019.00383/full).  The actual conversions can be found in 
-`therMizer_LtoWconvesions.txt`
+`therMizer_LtoWconversions.txt`
 
 The script `Hawaii_LtoWconversions.Rmd` was used to determine each species weight in grams at 30 and 90 cm.  This will be used to
 determine which species fall within each requested size range.  The species-specific weight-at-lengths are found in `wgts_30cm.dat` and
@@ -43,6 +43,9 @@ mizer_gfdl-mom6-cobalt2_none_obsclim_nat_15arcmin_<variable>_hawaii_monthly_1961
 
 ## Packaging output
 The script `package_output.Rmd` was used to package the output files to meet ISIMIP's protocol.
+
+## Posting output to levante
+The commands in `post_to_levante.txt` were used in a terminal window to post the output to the levante server.
 
 ## Final Products
 This workflow results in the following output files requested by ISIMIP:  

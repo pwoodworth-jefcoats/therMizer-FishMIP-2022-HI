@@ -1,0 +1,8 @@
+ssh user@levante.dkrz.de
+
+sftp user@levante.dkrz.de
+
+
+cd /work/bb0820/ISIMIP/ISIMIP3a/UploadArea/marine-fishery_regional/Mizer_hawaii/_tmp/gfdl-mom6-cobalt2/historical
+
+put *.csv
